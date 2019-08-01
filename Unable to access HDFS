@@ -5,7 +5,7 @@ Description:
   and this Warning "Warning: fs.defaultFS is not set when running "ls" command." appears
   when inputing above command.
  
-Path to Solution:
+Path to Solution: (Jump to the solution if you dont care how I got the anwser)
   The warning read "fs.defaultFS is not set", so I first have to know what fs.defaultFS is.
   After digging through the internet, I found out that "fs.defaultFS" is a property inside
   "core-site.xml" called "fs.default.name", where "fs" means "file system" and "default.name" means
@@ -15,12 +15,32 @@ Path to Solution:
     not share the same directory with local system.
     2. Gives the datanodes the address of namenode, datanode look at this property for the address of
     namenode and connect to it.
+  After looking at core-site.xml, I realized that core-site.xml already has the property fs.defaultFS, 
+  and the address be hdfs://ubuntu:8020/ also seems right to me. So, for somewhat reason the hdfs client
+  does not pick up the name node address from core-site.xml. At first, I thought the problem might be
+  the incorrect hostname I'm giving, since I'm using this CDH Hadoop cluster in a pseudo distributed mode,
+  which means I have only one host, therefore I changed the hostname from ubuntu to localhost, so now
+  it would be like hdfs://localhost:8020/ but then the problem still exists. Then I think maybe the changes
+  I made does not populate to the hdfs client configuration, which means the fs.defaultFS property in client 
+  still got hdfs://ubuntu:8020/ as value, so I went to CM(cloudera manager) and download client configuration
+  zip file and look into core-site.xml, and indeed the value is still hdfs://ubuntu:8020/. Then, I spend a lot
+  of time searching for the reason why the configuration is not populated, and then I found this 
+  https://community.cloudera.com/t5/Support-Questions/Update-core-site-xml-for-hive-from-Cloudera-Manager/td-p/68007.
+  Which means if your cluster is managed by CM, the manual modify to the configuration file will not be recognized
+  by CM, unless you modify the configuration directly in Cloudera manager web ui.
+  So what now?
+  Later I found out the fastest and safetest way to sync the client configuration with the namenode is to
+  click the "Deploy Client Configuration" button in CM cluster dropdown. After doing that I finally get the -ls
+  command working and the warning disappear. Also, remember the changes I made in core-site.xml? changing ubuntu
+  to localhost, the CM automatically changes localhost back to ubuntu, so I guess ubuntu is the right anwser
+  for namenode host name in pseudo distributed mode, at least for CM.
 
 Solution 1:
   Ignore the warning, which means leave "fs.defaultFS" unset. However, now when you want to access
   HDFS, you have to specify the ip address of the namenode.
   Example: "sudo -u hdfs hadoop fs -ls hdfs://10.192.181.139/"
   
-Solution 2:
+Solution 2 (when your Hadoop cluster is managed by CM):
+  Click the "Deploy Client Configuration" button in CM cluster dropdown
   
   
