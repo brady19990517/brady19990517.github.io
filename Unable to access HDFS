@@ -1,0 +1,26 @@
+Problem: Unable to access HDFS in Hadoop standalone mode
+
+Description:
+  "$ sudo -u hdfs hadoop fs -ls /" keeps giving me local directory instead of HDFS, 
+  and this Warning "Warning: fs.defaultFS is not set when running "ls" command." appears
+  when inputing above command.
+ 
+Path to Solution:
+  The warning read "fs.defaultFS is not set", so I first have to know what fs.defaultFS is.
+  After digging through the internet, I found out that "fs.defaultFS" is a property inside
+  "core-site.xml" called "fs.default.name", where "fs" means "file system" and "default.name" means
+  "namenode", and the value of this property is the ip address of the name node.
+  This property serves two functionalities:
+    1. Makes HDFS a file abstraction and set a abstract root directory for HDFS, so that HDFS does 
+    not share the same directory with local system.
+    2. Gives the datanodes the address of namenode, datanode look at this property for the address of
+    namenode and connect to it.
+
+Solution 1:
+  Ignore the warning, which means leave "fs.defaultFS" unset. However, now when you want to access
+  HDFS, you have to specify the ip address of the namenode.
+  Example: "sudo -u hdfs hadoop fs -ls hdfs://10.192.181.139/"
+  
+Solution 2:
+  
+  
