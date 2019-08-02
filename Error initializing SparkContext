@@ -1,1 +1,17 @@
+Problem: Error initializing SparkContext on Yarn
 
+Description:
+  Entering Spark shell by typing "spark-shell --master yarn" gives me this 
+  "ERROR spark.SparkContext: Error initializing SparkContext." error. 
+ 
+Path to Solution: (Jump to the solution if you dont care how I got the anwser)
+  After looking into log file, I found this "org.apache.hadoop.security.AccessControlException: --
+  Permission denied: user=worker, access=WRITE, inode="/user/worker":root:supergroup:drwxr-xr-x",
+  which means the "/user/worker" directory in HDFS has the wrong owner as root. Reset the
+  owner of the file by "sudo -u hdfs hadoop fs -chown worker /user/worker" and the error was
+  solved.
+
+Solution:
+  Permission Error
+  Change the owner of the file by
+  "sudo -u hdfs hadoop fs -chown worker /user/worker"
