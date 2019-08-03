@@ -1,0 +1,18 @@
+How To: Enable Spark Dynamic Allocation (CDH, Kyligence)
+
+Description: 
+The Resource unit of spark is called an executor. In yarn, the num-executor
+attributes specify how many exectors can Spark has, while executor-memory and executor-cores
+limit the memory and virtual CPU cores each executor consumes. For example, if user choosed
+"Fixed Resource Allocation" and set num-executor as 3, then there will be 4 YARN containers,
+1 for application master and 3 for Spark executors. These 4 containers will keep the resource
+occupied even if no process is running and the resource will only be released when the user
+log out. Enabling "Dynamic Allocation", Spark will dynamically increase and decrease the executors
+numbers according to query engine which save the resources.
+
+Solution:
+1. Copy yarn-shuffle.jar under $KYLIN_HOME/spark/yarn to $HADOOP_HOME/lib of all hadoop
+nodes in cluster, where $HADOOP_HOME is "/opt/cloudera/parcels/CDH-..../lib/hadoop" for cloudera.
+2. Copy the below snippet into NodeManager Advanced Configuration Snippet(Safety Valve) for
+yarn-site.xml in Yarn configuration
+  
