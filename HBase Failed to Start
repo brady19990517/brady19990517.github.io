@@ -1,18 +1,25 @@
-Problem: Both HBase's master and region server failed to start
+Problem: Both HBase's master and region server failed to start (Partially Solved might have a better way)
 
 Description:
-  
+  In cloudera manager both HBase master and region server failed to start, and both of their
+  health test are bad.
  
-Path to Solution: (Jump to the solution if you dont care how I got the anwser)
+Path to Solution: (Optional)
   Look into HBase log, found out the master server is down because of RetriesExhaustedException
   where region server cannot be started, so first check why region server cannot be started. Found
   out the region server cannot be started becuase of "NotServingRegionException: hbase:namespace,,
   1562646733636.222a2eb43f6320f8f9ed5ab2ed9fd140. is not online on ubuntu", which means for some 
-  reason this namespace table cannot be started. 
+  reason this namespace table cannot be started. This error might happen because of some unsynced 
+  communication between HBase and Zookeeper. After some digging, I found out the only way that
+  works for me is to delete the files and directory under /hbase in HDFS and delete the znode
+  /hbase in zookeeper. I know this is a bad idea since all the tables and data inside HBase is gone,
+   but I have no better way currently.
 
 Solution:
-  Permission Error
-  Change the owner of the file by
-  "sudo -u hdfs hadoop fs -chown worker /user/worker"
+  1. Stop HBase service in CM
+  2. Delete files under /Hbase in HDFS by "sudo -u hdfs hadoop fs -rm /HBase/*"
+  3. Delete /hbase znode in zookeeper by "zookeeper-client" and "rmr /hbase"
+  4. Restart Hbase service
+
 P.S.
   1. Nice Article for Explaining how HBase work https://mapr.com/blog/in-depth-look-hbase-architecture/
