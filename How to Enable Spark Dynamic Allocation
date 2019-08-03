@@ -13,6 +13,53 @@ numbers according to query engine which save the resources.
 Solution:
 1. Copy yarn-shuffle.jar under $KYLIN_HOME/spark/yarn to $HADOOP_HOME/lib of all hadoop
 nodes in cluster, where $HADOOP_HOME is "/opt/cloudera/parcels/CDH-..../lib/hadoop" for cloudera.
+
 2. Copy the below snippet into NodeManager Advanced Configuration Snippet(Safety Valve) for
 yarn-site.xml in Yarn configuration
-  
+<property>
+
+<name>YARN_USER_CLASSPATH</name>
+
+<value>/opt/cloudera/parcels/CDH-..../lib/hadoop/lib/*</value>
+
+</property>
+
+<property>
+
+<name>yarn.nodemanager.aux-services</name>
+
+<value>mapreduce_shuffle, spark_shuffle</value>
+
+</property>
+
+<property>
+
+<name>yarn.nodemanager.aux-services.spark_shuffle.class</name>
+
+<value>org.apache.spark.network.yarn.YarnShuffleService</value>
+
+</property>
+
+3. Click "Deploy Client Configuration" in CDH cluster and restart the cluster
+
+4. Add below snippet to kylin.properties
+
+kap.storage.columnar.spark-conf.spark.executor.instances=0
+
+kap.storage.columnar.spark-conf.spark.dynamicAllocation.enabled=true
+
+kap.storage.columnar.spark-conf.spark.dynamicAllocation.maxExecutors=5
+
+kap.storage.columnar.spark-conf.spark.dynamicAllocation.minExecutors=1
+
+kap.storage.columnar.spark-conf.spark.shuffle.service.enabled=true
+
+kap.storage.columnar.spark-conf.spark.dynamicAllocation.initialExecutors=3
+
+5. Done 
+
+6. Spark WebUI is viewable in "https://10.192.181.139:8090" according to kylin.log
+
+7. After executing some quires, you can see the below statement in kylin.log, which
+means, Spark Dynamic Allocation has been set successfully.
+2019-08-03 13:06:59,470 INFO  [spark-dynamic-executor-allocation] spark.ExecutorAllocationManager : Request to remove executorIds: 2
